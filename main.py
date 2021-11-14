@@ -16,10 +16,6 @@ ms_per_frame = 1/fps
 # assumes console BG is darker than text
 chars = [".", ",", "-", "~", ":", ";", "=", "!", "*", "#", "$", "@"]
 
-# to do: add dynamic video scaling
-size = (160, 80) # (length, height)
-#size = (128, 72)
-
 b = math.floor(255/(len(chars)-1))  
 
 # clear console command
@@ -81,12 +77,28 @@ def render_ascii(frame, dimensions: tuple):
     # join 
     return '\n'.join(ascii_rows)
 
+def scale_frame_size(width, height, max_area):
+    # for when ascii characters in cmd are not "perfect squares"
+    # for no extra scaling, make it equal to 1
+    width_scale_factor = 1.4
+
+    width_to_height_ratio = (width*width_scale_factor)/height
+
+    # get closest to maximum area while mainting aspect ratio
+    scaled_width = math.sqrt((max_area*width_to_height_ratio))
+    scaled_height = math.sqrt((max_area/width_to_height_ratio))
+
+    # tuple of (width, height)
+    return (math.floor(scaled_width), math.floor(scaled_height))
+
 def main():
     vid = cv2.VideoCapture(vid_path)
     print(vid.get(cv2.CAP_PROP_FPS))
 
-    width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
-    height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    vid_width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+    vid_height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    size = scale_frame_size(vid_width, vid_height, 12880)
+    print(size)
 
     frame_count = input(f"({vid_path}) number of frames to play: ")
     if frame_count.isdigit():
