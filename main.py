@@ -9,16 +9,13 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame import mixer
 from moviepy.editor import VideoFileClip
 
-# video to convert to ascii animation
-VID_PATH = "./videos/badapple.mp4"
-
 CHARS = " .:-=+*#%@"
 
 # for when chars in cmd are not displayed as "perfect squares"
 # for no extra scaling, make it equal to 1
 W_SCALE_FACTOR = 1.8
 
-# to help keep renders quick
+# to keep rendering from overwhelming frame rate
 MAX_FRAME_AREA =  12000
 MAX_FPS = 30
 
@@ -43,7 +40,6 @@ def play_animation(vid: cv2.VideoCapture, dimensions: tuple, seconds=None):
 
     current_frame = 1
     
-    load_audio(VID_PATH)
     timer = fpstimer.FPSTimer(fps)
     while True:
         ret, frame = vid.read() # gets next frame
@@ -103,8 +99,25 @@ def scale_frame_size(width, height, target_area):
     # tuple of (width, height) as int
     return (math.floor(scaled_width), math.floor(scaled_height))
 
+def select_video():
+    vid_folder = "videos/"
+    videos = [ file for file in os.listdir(vid_folder) if file.endswith(".mp4")]
+    
+    
+    for i, v in enumerate(videos):
+        print(f"{i+1} - {v}")
+    while True:
+        index = input("respond with the # of the file you would like to play: ")
+        if index.isdigit() and int(index) in range(1, len(videos)+1):
+        
+            return vid_folder + videos[int(index)-1]
+
 def main():
-    vid = cv2.VideoCapture(VID_PATH)
+    vid_path = select_video()
+    load_audio(vid_path)
+    os.system(clear_console)
+
+    vid = cv2.VideoCapture(vid_path)
 
     vid_width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
     vid_height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -113,18 +126,18 @@ def main():
     fps =  vid.get(cv2.CAP_PROP_FPS)
 
     length = vid.get(cv2.CAP_PROP_FRAME_COUNT)/fps
-    print(f"({VID_PATH}): length: {int(length)} secs  width: {size[0]} height: {size[1]}, fps: {min(30, int(fps))}")
+    print(f"({vid_path}): length: {int(length)} secs  width: {size[0]} height: {size[1]}, fps: {min(30, int(fps))}")
 
     secs = input(f"how many seconds would you like to play? (or play the full video) ")
 
     try:
         secs = float(secs)
-        print(f"playing {secs} seconds of {VID_PATH}...")
+        print(f"playing {secs} seconds of {vid_path}...")
         time.sleep(1)
 
         play_animation(vid, size, secs) 
     except ValueError:
-        print(f"no number specified, playing full video of {VID_PATH}...")
+        print(f"no number specified, playing full video of {vid_path}...")
         time.sleep(1)
 
         play_animation(vid, size) 
