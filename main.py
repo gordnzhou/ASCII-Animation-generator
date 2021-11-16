@@ -32,8 +32,7 @@ def play_animation(vid: cv2.VideoCapture, dimensions: tuple, seconds=None):
     else:
         frame_count = int(seconds*fps)
 
-    length = int(dimensions[0])
-    height = int(dimensions[1])
+    length, height = dimensions
 
     #  match console size with dimensions of the animation
     os.system(f'mode con: cols={length} lines={height}')
@@ -53,7 +52,7 @@ def play_animation(vid: cv2.VideoCapture, dimensions: tuple, seconds=None):
         else:
             break
 
-        # stalls each iteration to help maintain frame rate
+        # stalls each frame loop to help maintain frame rate
         timer.sleep()
         
     mixer.music.stop()
@@ -75,7 +74,7 @@ def load_audio(video_path):
 
     mixer.music.load(audio_path)
 
-# extra calculations done here to spped up rendering
+# extra calculations done here to speed up rendering
 b = math.ceil(255/(len(CHARS)-1))
 
 def render_ascii(frame, dimensions: tuple):
@@ -102,14 +101,19 @@ def scale_frame_size(width, height, target_area):
 def select_video():
     vid_folder = "videos/"
     videos = [ file for file in os.listdir(vid_folder) if file.endswith(".mp4")]
-    
-    
+
+    if not videos:
+        print(f"no videos found! in {videos}!")
+        exit()
+    elif len(videos) == 1:
+        return vid_folder + videos[0]
+
     for i, v in enumerate(videos):
         print(f"{i+1} - {v}")
     while True:
         index = input("respond with the # of the file you would like to play: ")
+
         if index.isdigit() and int(index) in range(1, len(videos)+1):
-        
             return vid_folder + videos[int(index)-1]
 
 def main():
@@ -125,22 +129,20 @@ def main():
     size = scale_frame_size(vid_width, vid_height, MAX_FRAME_AREA)
     fps =  vid.get(cv2.CAP_PROP_FPS)
 
-    length = vid.get(cv2.CAP_PROP_FRAME_COUNT)/fps
-    print(f"({vid_path}): length: {int(length)} secs  width: {size[0]} height: {size[1]}, fps: {min(30, int(fps))}")
+    length = int(vid.get(cv2.CAP_PROP_FRAME_COUNT)/fps)
+    print(f"({vid_path}): length: {length} secs  width, height {size} fps: {min(MAX_FPS, int(fps))}")
 
     secs = input(f"how many seconds would you like to play? (or play the full video) ")
 
     try:
         secs = float(secs)
         print(f"playing {secs} seconds of {vid_path}...")
-        time.sleep(1)
-
-        play_animation(vid, size, secs) 
     except ValueError:
+        secs = None
         print(f"no number specified, playing full video of {vid_path}...")
-        time.sleep(1)
 
-        play_animation(vid, size) 
+    time.sleep(1)
+    play_animation(vid, size, secs) 
 
 if __name__ == "__main__":
     main()
