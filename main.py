@@ -26,11 +26,7 @@ def play_animation(vid: cv2.VideoCapture, dimensions: tuple, seconds=None):
     fps = min(MAX_FPS, vid.get(cv2.CAP_PROP_FPS))
 
     # number of frames to play, plays all if no duration specified
-    if seconds == None:
-        frame_count = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-        seconds = int(vid.get(cv2.CAP_PROP_FRAME_COUNT)/60)
-    else:
-        frame_count = int(seconds*fps)
+    frame_count = vid.get(cv2.CAP_PROP_FRAME_COUNT) if not seconds else seconds*fps
 
     length, height = dimensions
 
@@ -38,26 +34,35 @@ def play_animation(vid: cv2.VideoCapture, dimensions: tuple, seconds=None):
     os.system(f'mode con: cols={length} lines={height}')
 
     current_frame = 1
-    
     timer = fpstimer.FPSTimer(fps)
     while True:
-        ret, frame = vid.read() # gets next frame
-        if ret and current_frame <= frame_count:
-            if current_frame == 1:
-                mixer.music.play()
-                
-            ascii_frame = render_ascii(frame, dimensions)
-            print(ascii_frame)
-            current_frame += 1
-        else:
-            break
+        try:
+            ret, frame = vid.read() # gets next frame
+            if ret and current_frame <= frame_count:
+                if current_frame == 1:
+                    mixer.music.play()
+                    
+                ascii_frame = render_ascii(frame, dimensions)
+                print(ascii_frame)
+                current_frame += 1
+            else:
+                break
 
-        # stalls each frame loop to help maintain frame rate
-        timer.sleep()
+            # stalls each frame loop to help maintain frame rate
+            timer.sleep()
+        except KeyboardInterrupt:
+            mixer.music.pause()
+            os.system(clear_console)
+            
+            if input("Animation paused. Continue? (y) ") == "y":
+                mixer.music.unpause()
+                continue
+            else:
+                break
         
     mixer.music.stop()
     os.system(clear_console)
-    print(f"animation has ended. ({seconds} secs)")
+    print(f"animation has ended. ({round(current_frame/fps, 2)} secs)")
 
 def load_audio(video_path):
     vid_name = os.path.basename(video_path).split(".")[0]
