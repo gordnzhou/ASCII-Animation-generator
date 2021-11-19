@@ -11,13 +11,13 @@ from moviepy.editor import VideoFileClip
 
 CHARS = " .:-=+*#%@"
 
+# you can edit these for your preference
+MAX_FRAME_AREA =  12000
+MAX_FPS = 30
+
 # for when chars in cmd are not displayed as "perfect squares"
 # for no extra scaling, make it equal to 1
 W_SCALE_FACTOR = 1.8
-
-# to keep rendering from overwhelming frame rate
-MAX_FRAME_AREA =  12000
-MAX_FPS = 30
 
 # clear console command
 clear_console = 'clear' if os.name == 'posix' else 'CLS'
