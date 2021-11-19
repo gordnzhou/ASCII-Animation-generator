@@ -43,5 +43,3 @@ respond with the number of the file you would like to play: 1
 ```bash
 Animation paused. Continue? (y)
 ```
-
-## License
